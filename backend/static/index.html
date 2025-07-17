@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Application Predictor</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+        .approved {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .rejected {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .recommendations {
+            margin-top: 15px;
+        }
+        .recommendations ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .row {
+            display: flex;
+            gap: 20px;
+        }
+        .col {
+            flex: 1;
+        }
+        @media (max-width: 600px) {
+            .row {
+                flex-direction: column;
+                gap: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏦 Loan Application Predictor</h1>
+        <form id="loanForm">
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label for="gender">Gender:</label>
+                        <select id="gender" required>
+                            <option value="">Select Gender</option>
+                            <option value="Lalaki">Male (Lalaki)</option>
+                            <option value="Babae">Female (Babae)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="marital_status">Marital Status:</label>
+                        <select id="marital_status" required>
+                            <option value="">Select Status</option>
+                            <option value="Single">Single</option>
+                            <option value="Kasal">Married (Kasal)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="dependents">Number of Dependents:</label>
+                        <select id="dependents" required>
+                            <option value="">Select Dependents</option>
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3+">3+</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="education">Education:</label>
+                        <select id="education" required>
+                            <option value="">Select Education</option>
+                            <option value="High School/Vocational">High School/Vocational</option>
+                            <option value="College Graduate">College Graduate</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="self_employed">Self Employed:</label>
+                        <select id="self_employed" required>
+                            <option value="">Select</option>
+                            <option value="No">No</option>
+                            <option value="Yes">Yes</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="property_area">Property Area:</label>
+                        <select id="property_area" required>
+                            <option value="">Select Area</option>
+                            <option value="Metro Manila">Metro Manila</option>
+                            <option value="Provincial Cities">Provincial Cities</option>
+                            <option value="Rural Provinces">Rural Provinces</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="col">
+                    <div class="form-group">
+                        <label for="applicant_income_php">Applicant Income (PHP):</label>
+                        <input type="number" id="applicant_income_php" required min="0" step="1000">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="coapplicant_income_php">Co-applicant Income (PHP):</label>
+                        <input type="number" id="coapplicant_income_php" min="0" step="1000" value="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loan_amount_php">Loan Amount (PHP):</label>
+                        <input type="number" id="loan_amount_php" required min="0" step="1000">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loan_term_days">Loan Term (Days):</label>
+                        <select id="loan_term_days" required>
+                            <option value="">Select Term</option>
+                            <option value="180">6 months (180 days)</option>
+                            <option value="360">12 months (360 days)</option>
+                            <option value="540">18 months (540 days)</option>
+                            <option value="720">24 months (720 days)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="credit_history">Credit History:</label>
+                        <select id="credit_history" required>
+                            <option value="">Select Credit History</option>
+                            <option value="1">Good (1)</option>
+                            <option value="0">Poor (0)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loan_category">Loan Category:</label>
+                        <select id="loan_category" required>
+                            <option value="">Select Category</option>
+                            <option value="House Purchase">House Purchase</option>
+                            <option value="Home Improvement/Car">Home Improvement/Car</option>
+                            <option value="Small Business/Motorcycle">Small Business/Motorcycle</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit" id="submitBtn">Predict Loan Approval</button>
+        </form>
+        
+        <div id="result" class="result">
+            <h3 id="resultTitle"></h3>
+            <p><strong>Approval Probability:</strong> <span id="probability"></span></p>
+            <p><strong>Risk Level:</strong> <span id="riskLevel"></span></p>
+            <div class="recommendations">
+                <strong>Recommendations:</strong>
+                <ul id="recommendationsList"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loanForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const resultDiv = document.getElementById('result');
+            
+            // Disable button and show loading
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+            resultDiv.style.display = 'none';
+            
+            // Collect form data
+            const formData = {
+                gender: document.getElementById('gender').value,
+                marital_status: document.getElementById('marital_status').value,
+                dependents: document.getElementById('dependents').value,
+                education: document.getElementById('education').value,
+                self_employed: document.getElementById('self_employed').value,
+                applicant_income_php: parseFloat(document.getElementById('applicant_income_php').value),
+                coapplicant_income_php: parseFloat(document.getElementById('coapplicant_income_php').value) || 0,
+                loan_amount_php: parseFloat(document.getElementById('loan_amount_php').value),
+                loan_term_days: parseFloat(document.getElementById('loan_term_days').value),
+                credit_history: parseFloat(document.getElementById('credit_history').value),
+                property_area: document.getElementById('property_area').value,
+                loan_category: document.getElementById('loan_category').value
+            };
+            
+            try {
+                const response = await fetch('http://localhost:8001/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                // Display results
+                document.getElementById('resultTitle').textContent = 
+                    result.loan_approved ? '✅ Loan Approved!' : '❌ Loan Rejected';
+                document.getElementById('probability').textContent = 
+                    (result.approval_probability * 100).toFixed(1) + '%';
+                document.getElementById('riskLevel').textContent = result.risk_level;
+                
+                // Display recommendations
+                const recommendationsList = document.getElementById('recommendationsList');
+                recommendationsList.innerHTML = '';
+                result.recommendations.forEach(rec => {
+                    const li = document.createElement('li');
+                    li.textContent = rec;
+                    recommendationsList.appendChild(li);
+                });
+                
+                // Style the result div
+                resultDiv.className = result.loan_approved ? 'result approved' : 'result rejected';
+                resultDiv.style.display = 'block';
+                
+            } catch (error) {
+                alert('Error: ' + error.message + '. Make sure the API server is running on http://localhost:8001');
+            } finally {
+                // Re-enable button
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Predict Loan Approval';
+            }
+        });
+    </script>
+</body>
+</html>

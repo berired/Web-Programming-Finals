@@ -1,0 +1,66 @@
+/* Responsive Design Test Utility */
+.responsive-test {
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.5rem;
+  font-size: 0.75rem;
+  z-index: 10000;
+  display: none;
+}
+
+.responsive-test.show {
+  display: block;
+}
+
+/* Screen size indicators */
+@media (max-width: 360px) {
+  .responsive-test::after {
+    content: "Ultra Small: ≤360px";
+  }
+}
+
+@media (min-width: 361px) and (max-width: 480px) {
+  .responsive-test::after {
+    content: "Extra Small: 361-480px";
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .responsive-test::after {
+    content: "Small: 481-768px";
+  }
+}
+
+@media (min-width: 769px) and (max-width: 992px) {
+  .responsive-test::after {
+    content: "Medium: 769-992px";
+  }
+}
+
+@media (min-width: 993px) and (max-width: 1200px) {
+  .responsive-test::after {
+    content: "Large: 993-1200px";
+  }
+}
+
+@media (min-width: 1201px) {
+  .responsive-test::after {
+    content: "Extra Large: ≥1201px";
+  }
+}
+
+/* Test different orientations */
+@media (orientation: landscape) {
+  .responsive-test::before {
+    content: "Landscape | ";
+  }
+}
+
+@media (orientation: portrait) {
+  .responsive-test::before {
+    content: "Portrait | ";
+  }
+}
