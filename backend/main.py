@@ -8,33 +8,28 @@ import numpy as np
 from typing import Optional
 import os
 
-# Initialize FastAPI app
 app = FastAPI(
     title="Loan Approval Predictor API",
     description="API for predicting loan approval based on Philippine loan data",
     version="1.0.0"
 )
 
-# Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify allowed origins
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Mount static files
 static_dir = os.path.join(os.path.dirname(__file__), "static")
 if os.path.exists(static_dir):
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
-# Global variables for model and encoders
 model = None
 label_encoders = None
 feature_columns = None
 
-# Load model and encoders on startup
 @app.on_event("startup")
 async def load_model():
     global model, label_encoders, feature_columns
@@ -50,20 +45,19 @@ async def load_model():
         print(f"Error loading model: {e}")
         print("Please run train_model.py first to train the model")
 
-# Pydantic models for request/response
 class LoanApplicationRequest(BaseModel):
-    gender: str  # "Lalaki" or "Babae"
-    marital_status: str  # "Kasal" or "Single"
-    dependents: str  # "0", "1", "2", or "3+"
-    education: str  # "College Graduate" or "High School/Vocational"
-    self_employed: str  # "Yes" or "No"
+    gender: str
+    marital_status: str
+    dependents: str
+    education: str
+    self_employed: str
     applicant_income_php: float
     coapplicant_income_php: float = 0.0
     loan_amount_php: float
     loan_term_days: float = 360.0
-    credit_history: float = 1.0  # 1.0 for good, 0.0 for bad
-    property_area: str  # "Metro Manila", "Provincial Cities", or "Rural Provinces"
-    loan_category: str  # "House Purchase", "Home Improvement", "Car", "Motorcycle", "Personal Loan", "Educational Loan", "Medical Loan", "Business Loan"
+    credit_history: float = 1.0
+    property_area: str
+    loan_category: str 
 
 class LoanApplicationResponse(BaseModel):
     loan_approved: bool
@@ -71,7 +65,6 @@ class LoanApplicationResponse(BaseModel):
     risk_level: str
     recommendations: list
 
-# Helper function to calculate income category
 def calculate_income_category(total_income: float) -> str:
     if total_income >= 1000000:
         return "Upper Middle (Class B)"
@@ -80,17 +73,14 @@ def calculate_income_category(total_income: float) -> str:
     else:
         return "Lower Middle (Class C-)"
 
-# Helper function to preprocess input data
 def preprocess_input(data: LoanApplicationRequest) -> pd.DataFrame:
     if label_encoders is None or feature_columns is None:
         raise HTTPException(status_code=503, detail="Model not properly loaded")
     
-    # Calculate derived features
     total_household_income = data.applicant_income_php + data.coapplicant_income_php
     loan_to_income_ratio = data.loan_amount_php / total_household_income if total_household_income > 0 else 0
     income_category = calculate_income_category(total_household_income)
     
-    # Create dataframe
     input_data = {
         'Gender': data.gender,
         'Marital_Status': data.marital_status,
@@ -111,7 +101,6 @@ def preprocess_input(data: LoanApplicationRequest) -> pd.DataFrame:
     
     df = pd.DataFrame([input_data])
     
-    # Encode categorical variables
     categorical_columns = ['Gender', 'Marital_Status', 'Education', 'Self_Employed', 
                           'Property_Area', 'Income_Category', 'Loan_Category']
     
@@ -120,15 +109,12 @@ def preprocess_input(data: LoanApplicationRequest) -> pd.DataFrame:
             try:
                 df[col + '_encoded'] = label_encoders[col].transform(df[col])
             except ValueError:
-                # Handle unseen categories by using the most frequent category
                 df[col + '_encoded'] = 0
     
-    # Handle dependents
     df['Dependents_numeric'] = df['Dependents'].replace('3+', '3').astype(int)
     
     return df[feature_columns]
 
-# Helper function to generate recommendations
 def generate_recommendations(data: LoanApplicationRequest, probability: float) -> list:
     recommendations = []
     
@@ -151,7 +137,6 @@ def generate_recommendations(data: LoanApplicationRequest, probability: float) -
         if data.self_employed == "Yes":
             recommendations.append("Provide additional documentation to verify stable income")
             
-        # Category-specific recommendations
         if data.loan_category == "Educational Loan":
             recommendations.append("Consider government scholarship programs or school payment plans")
         elif data.loan_category == "Medical Loan":
@@ -163,7 +148,6 @@ def generate_recommendations(data: LoanApplicationRequest, probability: float) -
         elif data.loan_category == "Motorcycle":
             recommendations.append("Look into dealer financing options which may offer competitive rates")
     else:
-        # High probability recommendations
         if data.loan_category == "House Purchase":
             recommendations.append("Great! Consider getting pre-approved for faster processing")
         elif data.loan_category == "Business Loan":
@@ -178,7 +162,6 @@ def generate_recommendations(data: LoanApplicationRequest, probability: float) -
     
     return recommendations
 
-# API Routes
 @app.get("/")
 async def root():
     return {"message": "Loan Approval Predictor API", "status": "active"}
@@ -197,14 +180,11 @@ async def predict_loan_approval(request: LoanApplicationRequest):
         raise HTTPException(status_code=503, detail="Model not loaded. Please train the model first.")
     
     try:
-        # Preprocess input data
         processed_data = preprocess_input(request)
         
-        # Make prediction
         prediction = model.predict(processed_data)[0]
-        probability = model.predict_proba(processed_data)[0][1]  # Probability of approval
+        probability = model.predict_proba(processed_data)[0][1]
         
-        # Determine risk level
         if probability >= 0.8:
             risk_level = "Low Risk"
         elif probability >= 0.6:
@@ -212,7 +192,6 @@ async def predict_loan_approval(request: LoanApplicationRequest):
         else:
             risk_level = "High Risk"
         
-        # Generate recommendations
         recommendations = generate_recommendations(request, probability)
         
         return LoanApplicationResponse(
